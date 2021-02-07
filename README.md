@@ -184,6 +184,7 @@ Light GetMainLight(float4 shadowCoord)
 ## 6장. 스펙큘러 구현
 
 - TODO 더 많은 광원 지원하기(2 Directional Light)
+- <https://catlikecoding.com/unity/tutorials/scriptable-render-pipeline/lights/>
 
 ## 7장. 서피스 셰이더
 
@@ -255,6 +256,84 @@ half3 LightingPhongModified(half3 lightColor, half3 lightDir, half3 normal, half
 ```
 
 ## 10장. 후처리 효과
+|                            | 자동 생성됨 |                                   |
+|----------------------------|-------------|-----------------------------------|
+| _CameraDepthTexture        | O           | Pipeline Settings> Depth Texture  |
+| _CameraOpaqueTexture       | O           | Pipeline Settings> Opaque Texture |
+| _CameraColorTexture        | ??          |                                   |
+| _CameraDepthNormalsTexture | X           |                                   |
+
+
+``` hlsl
+// com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl
+#define SAMPLE_TEXTURE2D(textureName, samplerName, coord2)                               textureName.Sample(samplerName, coord2)
+#define SAMPLE_DEPTH_TEXTURE(textureName, samplerName, coord2)          SAMPLE_TEXTURE2D(textureName, samplerName, coord2).r
+```
+
+``` hlsl
+// com.unity.render-pipelines.core/ShaderLibrary/API/Common.hlsl
+// Z buffer to linear 0..1 depth (0 at near plane, 1 at far plane).
+// Does NOT correctly handle oblique view frustums.
+// Does NOT work with orthographic projection.
+// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
+float Linear01DepthFromNear(float depth, float4 zBufferParam)
+{
+    return 1.0 / (zBufferParam.x + zBufferParam.y / depth);
+}
+
+// Z buffer to linear 0..1 depth (0 at camera position, 1 at far plane).
+// Does NOT work with orthographic projections.
+// Does NOT correctly handle oblique view frustums.
+// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
+float Linear01Depth(float depth, float4 zBufferParam)
+{
+    return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
+}
+
+// Z buffer to linear depth.
+// Does NOT correctly handle oblique view frustums.
+// Does NOT work with orthographic projection.
+// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
+float LinearEyeDepth(float depth, float4 zBufferParam)
+{
+    return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
+}
+
+// Z buffer to linear depth.
+// Correctly handles oblique view frustums.
+// Does NOT work with orthographic projection.
+// Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
+float LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam)
+{
+    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
+    float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
+
+    // If the matrix is right-handed, we have to flip the Z axis to get a positive value.
+    return abs(viewSpaceZ);
+}
+
+// Z buffer to linear depth.
+// Works in all cases.
+// Typically, this is the cheapest variant, provided you've already computed 'positionWS'.
+// Assumes that the 'positionWS' is in front of the camera.
+float LinearEyeDepth(float3 positionWS, float4x4 viewMatrix)
+{
+    float viewSpaceZ = mul(viewMatrix, float4(positionWS, 1.0)).z;
+
+    // If the matrix is right-handed, we have to flip the Z axis to get a positive value.
+    return abs(viewSpaceZ);
+}
+```
+|        | Built-in      | URP                   |
+|--------|---------------|-----------------------|
+| Camera | Camera:       | RenderPipelineManager |
+|        | OnPreCull     | beginFrameRendering   |
+|        | OnPreRender   | beginCameraRendering  |
+|        | OnPostRender  | endCameraRendering    |
+|        | OnRenderImage | endFrameRendering     |
+
+
+Create> Rendering> Universal Render Pipeline> Renderer Feature
 
 ## 11장. BRDF 누가 누구인가?
 

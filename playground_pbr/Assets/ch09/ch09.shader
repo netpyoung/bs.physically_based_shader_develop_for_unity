@@ -53,7 +53,7 @@
                 float4 positionHCS  : SV_POSITION;
                 float2 uv           : TEXCOORD0;
                 float3 positionWS   : TEXCOORD1;
-                float3 normalWS     : TEXCOORD2;
+                float3 normalOS     : TEXCOORD2;
                 float4 normalTexCoord : TEXCOORD4;
             };
 
@@ -63,7 +63,7 @@
                 Varyings OUT = (Varyings)0;;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 OUT.positionWS = TransformObjectToWorld(IN.positionOS.xyz);
-                OUT.normalWS = TransformObjectToWorld(IN.normalOS);
+                OUT.normalOS = IN.normalOS;
                 OUT.uv = TRANSFORM_TEX(IN.uv, _DiffuseTex);
                 return OUT;
             }
@@ -100,8 +100,8 @@
 
             half4 frag(Varyings IN) : SV_Target
             {
-                float3 N = normalize(IN.normalWS);
-                float3 V = normalize(TransformWorldToView(IN.normalWS));
+                float3 N = normalize(IN.normalOS);
+                float3 V = normalize(TransformWorldToView(IN.normalOS));
                 
                 // texture
                 float4 tex = SAMPLE_TEXTURE2D(_DiffuseTex, sampler_DiffuseTex, IN.uv);
