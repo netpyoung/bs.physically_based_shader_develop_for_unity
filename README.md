@@ -1,5 +1,6 @@
+- [Dev Weeks: URP 기본 구성과 흐름](https://www.youtube.com/watch?v=QRlz4-pAtpY)
 - [Dev Weeks: URP 셰이더 뜯어보기](https://www.youtube.com/watch?v=9K1uOihvNyg)
-- 
+
 ``` tree
 Packages/
 |-- Core RP Library/
@@ -69,6 +70,8 @@ Assets/
 |-- UniversalRenderPipelineAsset_Renderer.asset
 
 Project Settings> Graphics> Scriptable Render Pipeline Settings> UniversalRenderPipelineAsset.asset
+
+UniversalRenderPipelineAsset.asset> Quality> HDR check
 
 Project Settings> Player> Other Settings> Color Space> Linear
 ```
@@ -178,14 +181,78 @@ Light GetMainLight(float4 shadowCoord)
 
 - [URP - Drawing a texture](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.3/manual/writing-shaders-urp-unlit-texture.html)
 
+## 6장. 스펙큘러 구현
 
-## 6장. 스펙컬러 구현
+- TODO 더 많은 광원 지원하기(2 Directional Light)
 
 ## 7장. 서피스 셰이더
 
+Skip
+
 ## 8장. 물리 기반 셰이딩이란?
 
+빛을 측정하는 방법
+입체각 Solid Angle - 단위는 sr(steradian)
+단위 구로 어떠한 형상을 사영한 것.
+
+파워 W(power) 여러 방향에서 표면을 통과해 전달되는 에너지 크기
+일레디안스 모든 광선에서 점에 전달되는 빛의 크기  Irradiance E (W/m^2)
+레디안스 하나의 광선에서 점에 전달되는 빛의 크기 Radiance L_0 (W/(m^2 * sr))
+
+재질을 표현하는 방법
+양방향 반사 분포 함수 BRDF Bidirectional Reflectance Distribution Function
+빛이 표면에서 어떻게 반사될지에 대해 정의한 함수.
+
+| BRDF 속성              |                                                                                              |
+|------------------------|----------------------------------------------------------------------------------------------|
+| positivity             | BRDF값은 0이상이다                                                                           |
+| symmetry (reciprocity) | 빛이 들어오는 방향과 반사되는 방향의 값은 동일하다                                           |
+| conservation of energy | 나가는 빛의 양은 들어오는 빛의 양을 넘어설 수 없다(물체가 자체적으로 빛을 발산하지 않는다면) |
+
+
+미세면 이론
+|              |   |
+|--------------|---|
+| 프레넬       | F |
+| 정규분포함수 | D |
+| 기하함수     | G |
+
 ## 9장. 물리 기반 셰이더 제작하기
+
+phong
+
+``` hlsl
+half3 LightingPhong(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularColor, half3 albedo, half shininess)
+{
+    half NdotL = saturate(dot(normal, lightDir));
+    half3 diffuseTerm = NdotL * albedo * lightColor;
+
+    half3 reflectionDirection = reflect(-lightDir, normal);
+    half3 specularDot = max(0.0, dot(viewDir, reflectionDirection));
+    half3 specular = pow(specularDot, shininess);
+    half3 specularTerm = specularColor.rgb * specular * lightColor;
+
+    return diffuseTerm + specularTerm;
+}
+
+// Lafortune and Willems (1994)
+half3 LightingPhongModified(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularColor, half3 albedo, half shininess)
+{
+    half NdotL = saturate(dot(normal, lightDir));
+    half3 diffuseTerm = NdotL * albedo * lightColor;
+
+    half norm = (shininess + 2) / (2 * PI);
+
+    half3 reflectionDirection = reflect(-lightDir, normal);
+    half3 specularDot = max(0.0, dot(viewDir, reflectionDirection));
+
+    half3 specular = norm * pow(specularDot, shininess);
+
+    half3 specularTerm = specularColor.rgb * specular * lightColor;
+
+    return diffuseTerm + specularTerm;
+}
+```
 
 ## 10장. 후처리 효과
 

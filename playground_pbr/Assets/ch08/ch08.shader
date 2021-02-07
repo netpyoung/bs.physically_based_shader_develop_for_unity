@@ -1,4 +1,4 @@
-﻿Shader "shader/ch06"
+﻿Shader "shader/ch08"
 {
     Properties
     {
@@ -7,6 +7,8 @@
         _Ambient("Ambient", Range(0, 1)) = 0.25
         _SpecColor("Specular Material Color", Color) = (1, 1, 1, 1)
         _Shininess("Shininess", Float) = 10
+
+        [Toggle] _ModifiedMode("Modified?", Float) = 0
     }
 
     SubShader
@@ -15,8 +17,15 @@
         Pass
         {
             HLSLPROGRAM
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+
+            // There is a maximum of 64 unique local keywords per shader.
+            // #pragma shader_feature __ _MODIFIEDMODE_ON
+
+            #pragma shader_feature _MODIFIEDMODE_OFF _MODIFIEDMODE_ON
+            
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"            
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -45,6 +54,7 @@
                 float2 uv           : TEXCOORD0;
                 float3 positionWS   : TEXCOORD1;
                 float3 normalWS     : TEXCOORD2;
+                float4 normalTexCoord : TEXCOORD4;
             };
 
             Varyings vert(Attributes IN)
@@ -58,28 +68,52 @@
                 return OUT;
             }
 
+            half3 LightingPhong(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularColor, half3 albedo, half shininess)
+            {
+                half NdotL = saturate(dot(normal, lightDir));
+                half3 diffuseTerm = NdotL * albedo * lightColor;
+
+                half3 reflectionDirection = reflect(-lightDir, normal);
+                half3 specularDot = max(0.0, dot(viewDir, reflectionDirection));
+                half3 specular = pow(specularDot, shininess);
+                half3 specularTerm = specularColor.rgb * specular * lightColor;
+
+                return diffuseTerm + specularTerm;
+            }
+
+            half3 LightingPhongModified(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularColor, half3 albedo, half shininess)
+            {
+                half NdotL = saturate(dot(normal, lightDir));
+                half3 diffuseTerm = NdotL * albedo * lightColor;
+
+                half norm = (shininess + 2) / (2 * PI);
+
+                half3 reflectionDirection = reflect(-lightDir, normal);
+                half3 specularDot = max(0.0, dot(viewDir, reflectionDirection));
+
+                half3 specular = norm * pow(specularDot, shininess);
+
+                half3 specularTerm = specularColor.rgb * specular * lightColor;
+
+                return diffuseTerm + specularTerm;
+            }
+
             half4 frag(Varyings IN) : SV_Target
             {
                 float3 N = normalize(IN.normalWS);
                 float3 V = normalize(TransformWorldToView(IN.normalWS));
-                Light light = GetMainLight();
-                float3 L = light.direction;
-
+                
                 // texture
                 float4 tex = SAMPLE_TEXTURE2D(_DiffuseTex, sampler_DiffuseTex, IN.uv);
 
-                // diffuse
-                float NdotL = max(_Ambient, dot(N, L));
-                float4 diffuseTerm = NdotL * _Color * tex * float4(light.color, 1);
+                Light light = GetMainLight();
 
-                // specular
-                float3 R = reflect(-L, N);
-                float3 VdotR = max(0.0, dot(V, R));
-                float3 specular = pow(VdotR, _Shininess);
-                float4 specularTerm = float4(specular, 1) * _SpecColor * float4(light.color, 1);
-
-                float4 finalColor = diffuseTerm + specularTerm;
-                return finalColor;
+#if _MODIFIEDMODE_ON
+                float3 finalColor = LightingPhongModified(light.color, light.direction, N, V, _SpecColor, (_Color * tex).rgb, _Shininess); 
+#else
+                float3 finalColor = LightingPhong(light.color, light.direction, N, V, _SpecColor, (_Color * tex).rgb, _Shininess);
+#endif                
+                return half4(finalColor, 1);
             }
             ENDHLSL
         }

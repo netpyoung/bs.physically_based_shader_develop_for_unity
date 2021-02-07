@@ -1,9 +1,10 @@
-﻿Shader "shader/ch06"
+﻿Shader "shader/ch07"
 {
     Properties
     {
         _Color("Color", Color) = (1, 0, 0, 1)
         _DiffuseTex("Texture", 2D) = "white" {}
+        _NormalMap("Normal Map", 2D) = "bump" {}
         _Ambient("Ambient", Range(0, 1)) = 0.25
         _SpecColor("Specular Material Color", Color) = (1, 1, 1, 1)
         _Shininess("Shininess", Float) = 10
@@ -15,6 +16,7 @@
         Pass
         {
             HLSLPROGRAM
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -23,10 +25,13 @@
 
             TEXTURE2D(_DiffuseTex);
             SAMPLER(sampler_DiffuseTex);
+            TEXTURE2D(_NormalMap);
+            SAMPLER(sampler_NormalMap);
 
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
                 float4 _DiffuseTex_ST;
+                float4 _NormalMap_ST;
                 half4 _SpecColor;
                 half _Shininess;
                 float _Ambient;
@@ -45,6 +50,7 @@
                 float2 uv           : TEXCOORD0;
                 float3 positionWS   : TEXCOORD1;
                 float3 normalWS     : TEXCOORD2;
+                float4 normalTexCoord : TEXCOORD4;
             };
 
             Varyings vert(Attributes IN)
@@ -64,6 +70,8 @@
                 float3 V = normalize(TransformWorldToView(IN.normalWS));
                 Light light = GetMainLight();
                 float3 L = light.direction;
+
+                // float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, IN.uv));
 
                 // texture
                 float4 tex = SAMPLE_TEXTURE2D(_DiffuseTex, sampler_DiffuseTex, IN.uv);
