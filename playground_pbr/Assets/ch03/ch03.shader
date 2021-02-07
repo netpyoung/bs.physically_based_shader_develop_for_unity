@@ -18,13 +18,13 @@
             struct Attributes
             {
                 float4 positionOS   : POSITION;
-                float4 color : COLOR;
+                float4 color        : COLOR;
             };
 
             struct Varyings
             {
                 float4 positionHCS  : SV_POSITION;
-                float4 color : COLOR;
+                float4 color        : COLOR;
             };
 
             Varyings vert(Attributes IN)

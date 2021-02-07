@@ -48,7 +48,7 @@
                 //Varyings OUT;
                 Varyings OUT = (Varyings)0;;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                OUT.normalWS = TransformObjectToWorld(IN.normalOS);
+                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
                 OUT.uv = TRANSFORM_TEX(IN.uv, _DiffuseTex);
                 return OUT;
             }

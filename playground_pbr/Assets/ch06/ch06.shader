@@ -18,8 +18,8 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"            
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"  
 
             TEXTURE2D(_DiffuseTex);
             SAMPLER(sampler_DiffuseTex);
@@ -53,15 +53,34 @@
                 Varyings OUT = (Varyings)0;;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 OUT.positionWS = TransformObjectToWorld(IN.positionOS.xyz);
-                OUT.normalWS = TransformObjectToWorld(IN.normalOS);
+                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
                 OUT.uv = TRANSFORM_TEX(IN.uv, _DiffuseTex);
                 return OUT;
             }
 
+#if SHADER_LIBRARY_VERSION_MAJOR < 9
+            // 
+            // #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+            float3 GetWorldSpaceViewDir(float3 positionWS)
+            {
+                if (unity_OrthoParams.w == 0)
+                {
+                    // Perspective
+                    return _WorldSpaceCameraPos - positionWS;
+                }
+                else
+                {
+                    // Orthographic
+                    float4x4 viewMat = GetWorldToViewMatrix();
+                    return viewMat[2].xyz;
+                }
+            }
+#endif
+
             half4 frag(Varyings IN) : SV_Target
             {
                 float3 N = normalize(IN.normalWS);
-                float3 V = normalize(TransformWorldToView(IN.normalWS));
+                float3 V = normalize(GetWorldSpaceViewDir(IN.positionWS));
                 Light light = GetMainLight();
                 float3 L = light.direction;
 
