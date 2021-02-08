@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ch10
+  m_Name: ch10_posteffect
   m_Shader: {fileID: 4800000, guid: be9464497cdc58c4bafa490564bec683, type: 3}
   m_ShaderKeywords: _MODIFIEDMODE_ON
   m_LightmapFlags: 4

@@ -1,19 +1,26 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class CustomRenderPassFeature : ScriptableRendererFeature
+public class Ch10PostEffectRenderPassFeature : ScriptableRendererFeature
 {
-    class CustomRenderPass : ScriptableRenderPass
+    public enum E_MODE
     {
-        private Material _material;
+        INVERT,
+        DEPTH,
+        GAMMA_TO_LINEAR,
+        DEFAULT,
+    }
+
+    class Ch10PostEffectRenderPass : ScriptableRenderPass
+    {
         private RenderTargetIdentifier _source;
         private RenderTargetHandle _tempTexture;
+        private Ch10PostEffectRenderPassFeature _feature;
 
-        public CustomRenderPass(Material material)
+        public Ch10PostEffectRenderPass(Ch10PostEffectRenderPassFeature feature)
         {
-            this._material = material;
+            _feature = feature;
             _tempTexture.Init("_TempTex");
         }
 
@@ -32,13 +39,30 @@ public class CustomRenderPassFeature : ScriptableRendererFeature
         // You don't have to call ScriptableRenderContext.submit, the render pipeline will call it at specific points in the pipeline.
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("A");
+            CommandBuffer cmd = CommandBufferPool.Get($"{nameof(Ch10PostEffectRenderPass)}");
             {
                 RenderTextureDescriptor desc = renderingData.cameraData.cameraTargetDescriptor;
                 desc.depthBufferBits = 0;
                 cmd.GetTemporaryRT(_tempTexture.id, desc, FilterMode.Bilinear);
 
-                Blit(cmd, _source, _tempTexture.Identifier(), _material, 0);
+                switch (_feature.Mode)
+                {
+                    case E_MODE.INVERT:
+                        Blit(cmd, _source, _tempTexture.Identifier(), _feature.material, 0);
+                        break;
+                    case E_MODE.DEPTH:
+                        Blit(cmd, _source, _tempTexture.Identifier(), _feature.material, 1);
+                        break;
+                    case E_MODE.GAMMA_TO_LINEAR:
+                        // Project Settings> Player> Other Settings> Color Space> Gamma
+                        Blit(cmd, _source, _tempTexture.Identifier(), _feature.material, 2);
+                        break;
+                    case E_MODE.DEFAULT:
+                        Blit(cmd, _source, _tempTexture.Identifier());
+                        break;
+                    default:
+                        break;
+                }
                 Blit(cmd, _tempTexture.Identifier(), _source);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -58,13 +82,14 @@ public class CustomRenderPassFeature : ScriptableRendererFeature
         }
     }
 
-    CustomRenderPass _scriptablePass;
+    Ch10PostEffectRenderPass _scriptablePass;
 
     public Material material;
+    public E_MODE Mode;
 
     public override void Create()
     {
-        _scriptablePass = new CustomRenderPass(material);
+        _scriptablePass = new Ch10PostEffectRenderPass(this);
 
         // Configures where the render pass should be injected.
         //m_ScriptablePass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;

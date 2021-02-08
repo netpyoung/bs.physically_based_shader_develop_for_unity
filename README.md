@@ -256,13 +256,6 @@ half3 LightingPhongModified(half3 lightColor, half3 lightDir, half3 normal, half
 ```
 
 ## 10장. 후처리 효과
-|                            | 자동 생성됨 |                                   |
-|----------------------------|-------------|-----------------------------------|
-| _CameraDepthTexture        | O           | Pipeline Settings> Depth Texture  |
-| _CameraOpaqueTexture       | O           | Pipeline Settings> Opaque Texture |
-| _CameraColorTexture        | ??          |                                   |
-| _CameraDepthNormalsTexture | X           |                                   |
-
 
 ``` hlsl
 // com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl
@@ -334,6 +327,14 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewMatrix)
 
 
 Create> Rendering> Universal Render Pipeline> Renderer Feature
+
+|                            | 자동 생성됨 |                                   |
+|----------------------------|-------------|-----------------------------------|
+| _CameraDepthTexture        | O           | Pipeline Settings> Depth Texture  |
+| _CameraOpaqueTexture       | O           | Pipeline Settings> Opaque Texture |
+| _CameraColorTexture        | ??          |                                   |
+| _CameraDepthNormalsTexture | X           |                                   |
+
 
 ## 11장. BRDF 누가 누구인가?
 

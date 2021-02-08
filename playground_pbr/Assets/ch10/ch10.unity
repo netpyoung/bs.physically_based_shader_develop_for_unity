@@ -131,7 +131,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 56aec04116a64f545ac59f8f754d9ceb,
         type: 3}
       propertyPath: m_RootOrder
-      value: 5
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 56aec04116a64f545ac59f8f754d9ceb,
         type: 3}
@@ -146,7 +146,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 56aec04116a64f545ac59f8f754d9ceb,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 56aec04116a64f545ac59f8f754d9ceb,
         type: 3}
@@ -505,7 +505,7 @@ GameObject:
   - component: {fileID: 1407659880}
   - component: {fileID: 1407659879}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: RuntimeRenderPipelineChanger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -523,8 +523,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09d3602b843493f4e941a67d2f160cfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rendererData: {fileID: 11400000, guid: bf01744dd51cc9a46b6c8a71cfb09d3e, type: 2}
-  isOn: 1
   material: {fileID: 2100000, guid: 117a46db60e4def479711261b3cb4b0b, type: 2}
   renderPipelineAsset: {fileID: 11400000, guid: eef0cec4e6e9cf543816263ca2aeb935,
     type: 2}
@@ -540,7 +538,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1471426860
 PrefabInstance:
@@ -552,7 +550,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 56aec04116a64f545ac59f8f754d9ceb,
         type: 3}
       propertyPath: m_RootOrder
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 56aec04116a64f545ac59f8f754d9ceb,
         type: 3}
@@ -567,7 +565,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 56aec04116a64f545ac59f8f754d9ceb,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 56aec04116a64f545ac59f8f754d9ceb,
         type: 3}
