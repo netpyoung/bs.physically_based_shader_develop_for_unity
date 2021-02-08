@@ -1,3 +1,7 @@
+# 유니티 물리 기반 쉐이더 개발
+
+TODO 책 링크
+
 - [Dev Weeks: URP 기본 구성과 흐름](https://www.youtube.com/watch?v=QRlz4-pAtpY)
 - [Dev Weeks: URP 셰이더 뜯어보기](https://www.youtube.com/watch?v=9K1uOihvNyg)
 
@@ -16,7 +20,6 @@ Packages/
 |  |  |-- Shadows.hlsl - 쉐도우맵 샘플링, 캐스케이드 계산, ShadowCoord계산 , Shadow Bias계산
 |  |-- Shaders/
 ```
-
 
 ## 1장. 셰이더 개발 과정
 
@@ -210,7 +213,6 @@ Skip
 | symmetry (reciprocity) | 빛이 들어오는 방향과 반사되는 방향의 값은 동일하다                                           |
 | conservation of energy | 나가는 빛의 양은 들어오는 빛의 양을 넘어설 수 없다(물체가 자체적으로 빛을 발산하지 않는다면) |
 
-
 미세면 이론
 |              |   |
 |--------------|---|
@@ -317,6 +319,7 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewMatrix)
     return abs(viewSpaceZ);
 }
 ```
+
 |        | Built-in      | URP                   |
 |--------|---------------|-----------------------|
 | Camera | Camera:       | RenderPipelineManager |
@@ -325,8 +328,7 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewMatrix)
 |        | OnPostRender  | endCameraRendering    |
 |        | OnRenderImage | endFrameRendering     |
 
-
-Create> Rendering> Universal Render Pipeline> Renderer Feature
+`Create> Rendering> Universal Render Pipeline> Renderer Feature`
 
 |                            | 자동 생성됨 |                                   |
 |----------------------------|-------------|-----------------------------------|
@@ -346,7 +348,118 @@ Create> Rendering> Universal Render Pipeline> Renderer Feature
 
 ## 11장. BRDF 누가 누구인가?
 
+- <https://github.com/wdas/brdf>
+- <https://github.com/wdas/brdf/downloads>
+- <https://www.disneyanimation.com/publications/physically-based-shading-at-disney/>
+- [[ 번역 ] Physically-Based Shading at Disney](https://lifeisforu.tistory.com/350)
+
+![./brdf_vectors.png](./brdf_vectors.png)
+
+| 기호 | 설명                              |
+|------|-----------------------------------|
+| N    | 노말                              |
+| H    | 하프벡터 `H = normalize( L + V )` |
+| L    | 라이트(광원)                      |
+| V    | 뷰(카메라)                        |
+| T    | 탄젠트                            |
+| Θ    | (Theta) 방위각                    |
+| Φ    | (Phi)  앙각(올려본각)             |
+
+### BRDF 종류
+
+- 어크먼 셜리
+- 쿡토렌스
+- 오렌네이어
+- 알드
+- 디즈니
+
+#### Ashikhmin Shirley
+
+2000 - Michael Ashikhmin & Peter Shirley - An Anisotropic Phong BRDF Model
+
+퐁 스펙큘러
+
+#### Cook Torrance
+
+1982 - Robert L.Cook & Kenneth E. Torrance - A Reflectance Model For Computer Graphics
+
+미세면이론
+
+#### Oren Nayar
+
+1994 - Michael Oren & Shree K. Nayar - Generalization of Lambert’s Reflectance Model
+
+디퓨즈 전용
+
+#### Ward
+
+1992 - Gregory J. Ward - Measuring and modeling anisotropic reflection
+
+경험적 데이터 기반, 거의 사용되지 않음.
+
+#### Disney
+
+SIGGRAPH 2012 - Brent Burley - Physically Based Shading at Disney
+
+여러 파라미터
+
 ## 12장. BRDF 구현하기
+
+### 레퍼런스 BRDF
+
+#### Cook Torrance 레퍼런스
+
+미세면이론
+
+1982 - Robert L.Cook & Kenneth E. Torrance - A Reflectance Model For Computer Graphics
+
+|                                                                                      |                                                                    |
+|--------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| Physics and Math of Shading by Naty Hoffman                                          | SIGGRAPH every year from 2012 to 2015                              |
+| Real Shading in Unreal Engine 4 by Brian Karis                                       | SIGGRAPH, 2013                                                     |
+| BRDF Explorer (GLSL) - CookTorrance BRDF                                             |                                                                    |
+| Specular BRDF Reference on Brian Karis’ blog                                         | <graphicrants.blogspot.co.uk/2013/08/specular-brdf-reference.html> |
+| Introduction to BRDF Models by Daniël Jimenez Kwast                                  |                                                                    |
+| A Reflectance Model for Computer Graphics from 1981                                  |                                                                    |
+| Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs by Eric Heitz | SIGGRAPH, 2014 - 미세면이해 추천                                   |
+| Microfacet Models for Refraction through Rough Surfaces                              | EGSR, 2017                                                         |
+
+#### Disney 레퍼런스
+
+직관적 파라미터 좋은 예제, 구현 복잡
+
+|                                                                           |                                                                                    |
+|---------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| Physically Based Shading at Disney                                        | SIGGRAPH, 2012, by Brent Burley                                                    |
+| BRDF Explorer (GLSL) - Disney BRDF                                        |                                                                                    |
+| Extending the Disney BRDF to a BSDF with Integrated Subsurface Scattering | SIGGRAPH, 2015, by Brent Burley                                                    |
+| Moving Frostbite to Physically Based Rendering                            | SIGGRAPH, 2015, by Sébastien Lagarde and Charlesde Rousiers (only for the Diffuse) |
+
+### 이론 BRDF
+
+#### Cook Torrance 이론
+
+미세면 이론
+|   |              |              |
+|---|--------------|--------------|
+| F | Fresnel      | 프레넬       |
+| D | Distribution | 정규분포함수 |
+| G | Geometry     | 기하함수     |
+
+NDF : Normal Distribution Function : 정규분포함수
+
+- NDF
+  - Beckmann
+  - Phong
+  - GGX
+
+#### Disney 이론
+
+### 구현 BRDF
+
+#### Cook Torrance 구현
+
+#### Disney 구현
 
 ## 13장. 표준 셰이더 후킹
 
@@ -354,26 +467,84 @@ Create> Rendering> Universal Render Pipeline> Renderer Feature
 
 ## 15장. 아티스트가 사용할 셰이더 제작
 
+아티스트가 조작하기 편하게
+
+1. 적절한 셋팅 갯수
+2. 적절한 셋팅 네이밍
+3. 상호 작용하는 셋팅값을 위한 문서화
+4. 텍스쳐에 여러 정보(albedo + specular등)을 넣는 경우가 많은데, 명확하게 셋팅값과 셋팅 네이밍을 표시
+5. 여러 범위 혼합사용 피하기(되도록이면 `0 ~ 1`로...)
+6. 파라미터 변화값 별로 예제 씬 있으면 좋겠네..
+
 ## 16장. 복잡도와 우버셰이더
+
+TODO
 
 ## 17장. 셰이더가 정상작동하지 않을 때
 
+### 일반적 트릭
+
+- shader로 노말값 시각화
+
+### 디버깅 도구
+
+- Window> Analysis> Frame Debugger
+- RenderDoc 프로그램
+  - <https://renderdoc.org/>
+
+### 프로파일링
+
+|                                 |  |
+|---------------------------------|--|
+| 배치 수                         |  |
+| 드로우콜                        |  |
+| SetPass                         |  |
+| Vertex                          |  |
+| 텍스쳐 갯수/메모리 /스위치 횟수 |  |
+| Shadow Casters                  |  |
+| Vertex Buffer Object            |  |
+
+- CPU에 치중? GPU에 치중?
+- Static GameObject 활용 잘하기.
+
 ## 18장. 최선 트렌드 따라잡기
 
+### 컨퍼런스
 
-| RWS   | Camera-Relative world space. A space where the translation of the Camera have already been substract in order to improve precision |
+|                 |                              |
+|-----------------|------------------------------|
+| GDC             | GDC Vault 구독 1년 400불정도 |
+| Siggraph        | 1년 45달러                   |
+| Unite           |                              |
+| Digital Dragons | 영상자료 공개                |
+| Eurographics    | 학술위주                     |
 
-// normalized / unormalized vector
-// normalized direction are almost everywhere, we tag unormalized vector with un.
-// Example: unL for unormalized light vector
+### 서적
 
-// use capital letter for regular vector, vector are always pointing outward the current pixel position (ready for lighting equation)
-// capital letter mean the vector is normalize, unless we put 'un' in front of it.
-// V: View vector  (no eye vector)
-// L: Light vector
-// N: Normal vector
-// H: Half vector
+어렵지만 구입해서 읽어볼 가치 있음.
 
+|          |  |
+|----------|--|
+| GPU Gems |  |
+| ShaderX  |  |
+| GPU PRO  |  |
+| GPU Zen  |  |
+
+### 사이트
+
+- <http://blog.selfshadow.com/publications/>
+- <https://labs.unity.com/>
+- <http://filmicworlds.com/>
+- <http://aras-p.info/>
+- <https://seblagarde.wordpress.com/>
+- <http://c0de517e.blogspot.co.uk/>
+- <http://blog.tobias-franke.eu/>
+- <https://bartwronski.com/>
+- <http://bitsquid.blogspot.co.uk/>
+- <http://casual-effects.blogspot.co.uk/>
+- <http://kesen.realtimerendering.com/>
+- <http://graphicscodex.com>
+- <https://www.scratchapixel.com/>
 
 ## etc
 

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   material: {fileID: 2100000, guid: 117a46db60e4def479711261b3cb4b0b, type: 2}
-  Mode: 0
+  Mode: 3
+  ToneMapperExposure: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
