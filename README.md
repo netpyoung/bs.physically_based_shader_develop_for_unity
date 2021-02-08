@@ -478,7 +478,33 @@ NDF : Normal Distribution Function : 정규분포함수
 
 ## 16장. 복잡도와 우버셰이더
 
-TODO
+쉐이더 하나를 이용해서 여러가지 경우를 처리하고 싶은 경우, 필요한 모든 코드를 쉐이더 하나에 집어넣게되면 그게 바로 우버셰이더.
+
+- `if`와 같은 동적분기는 성능저하.
+- `#if`와 같이 전처리기를 이용한, 정적 분기를 이용하여 처리한다.
+
+유니티에서는 키워드를 이용 쉐이더 조합을 편리하게 해주는 기능이 있음.
+
+- [Shader variants and keywords](https://docs.unity3d.com/2021.1/Documentation/Manual/SL-MultipleProgramVariants.html)
+- 총 256개의 글로벌 키워드.
+- 64개의 로컬 키워드.
+
+- `#pragma shader_feature KEYWORD
+- `#pragma multi_compile KEYWORD`
+
+|                | 게임빌드에 포함     |
+|----------------|---------------------|
+| shader_feature | 사용되는 것만       |
+| multi_compile  | 조합 가능한 모든 것 |
+
+``` txt
+#pragma multi_compile A B C
+#pragma multi_compile D E
+
+조합해서 나올 수 있는 총 갯수: 6개
+A+D, B+D, C+D
+A+E, B+E, C+E
+```
 
 ## 17장. 셰이더가 정상작동하지 않을 때
 
