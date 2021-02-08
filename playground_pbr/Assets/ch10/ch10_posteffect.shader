@@ -159,5 +159,66 @@
             }
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "ToneMapping"
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"            
+
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
+            TEXTURE2D(_CameraDepthTexture);
+            SAMPLER(sampler_CameraDepthTexture);
+
+            float4 _MainTex_ST;
+            float4 _CameraDepthTexture_ST;
+            float _ToneMapperExposure;
+
+            struct Attributes
+            {
+                float4 positionOS   : POSITION;
+                float2 uv           : TEXCOORD0;
+            };
+
+            struct Varyings
+            {
+                float4 positionHCS  : SV_POSITION;
+                float2 uv           : TEXCOORD0;
+            };
+
+            Varyings vert(Attributes IN)
+            {
+                //Varyings OUT;
+                Varyings OUT = (Varyings)0;;
+                OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
+                OUT.uv = IN.uv;
+                return OUT;
+            }
+
+            half3 HableOperator(half3 col)
+            {
+                half A = 0.15;
+                half B = 0.50;
+                half C = 0.10;
+                half D = 0.20;
+                half E = 0.02;
+                half F = 0.30;
+                return ((col * (col * A + B * C) + D * E) / (col * (col * A + B) + D * F)) - E / F;
+            }
+
+            half4 frag(Varyings IN) : SV_Target
+            {
+                half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
+                half3 toneMapped = col.rgb * _ToneMapperExposure * 4;
+                toneMapped = HableOperator(toneMapped) / HableOperator(11.2);
+                return half4(toneMapped, 1);
+            }
+            ENDHLSL
+        }
     }
 }

@@ -9,6 +9,7 @@ public class Ch10PostEffectRenderPassFeature : ScriptableRendererFeature
         INVERT,
         DEPTH,
         GAMMA_TO_LINEAR,
+        TONE_MAPPING,
         DEFAULT,
     }
 
@@ -57,6 +58,10 @@ public class Ch10PostEffectRenderPassFeature : ScriptableRendererFeature
                         // Project Settings> Player> Other Settings> Color Space> Gamma
                         Blit(cmd, _source, _tempTexture.Identifier(), _feature.material, 2);
                         break;
+                    case E_MODE.TONE_MAPPING:
+                        _feature.material.SetFloat("_ToneMapperExposure", _feature.ToneMapperExposure);
+                        Blit(cmd, _source, _tempTexture.Identifier(), _feature.material, 3);
+                        break;
                     case E_MODE.DEFAULT:
                         Blit(cmd, _source, _tempTexture.Identifier());
                         break;
@@ -86,6 +91,8 @@ public class Ch10PostEffectRenderPassFeature : ScriptableRendererFeature
 
     public Material material;
     public E_MODE Mode;
+    [Range(1.0f, 10.0f)]
+    public float ToneMapperExposure = 2.0f;
 
     public override void Create()
     {

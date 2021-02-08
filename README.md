@@ -335,6 +335,14 @@ Create> Rendering> Universal Render Pipeline> Renderer Feature
 | _CameraColorTexture        | ??          |                                   |
 | _CameraDepthNormalsTexture | X           |                                   |
 
+- <https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.3/manual/integration-with-post-processing.html>
+
+``` txt
+- Camera> Rendering> Post-Processing 체크
+- Hierachy> Volume> Global Volume
+- Global Volume> Volume> Profile> New
+- Global Volume> Volume> Add Override
+```
 
 ## 11장. BRDF 누가 누구인가?
 
