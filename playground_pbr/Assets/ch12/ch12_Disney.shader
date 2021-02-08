@@ -1,4 +1,4 @@
-﻿Shader "shader/ch12_CookTorrance"
+﻿Shader "shader/ch12_Disney"
 {
     Properties
     {
@@ -12,6 +12,8 @@
         [Toggle] _EnableCookTorrance("CookTorrance?", Float) = 0
 
         _Roughness("Roughness(CookTorrance)", Range(0, 1)) = 0.5
+
+        _Subsurface("Subsurface", Range(0,1)) = 0.5
     }
 
     SubShader
@@ -58,6 +60,7 @@
                 half4 _SpecColor;
                 float4 _BumpMap_ST;
                 half _Roughness;
+                float3 _Subsurface;
             CBUFFER_END
 
             struct Attributes
@@ -149,6 +152,68 @@
                 return specular;
             }
 
+            float3 DiffuseDisney(float3 albedo, float NdotL, float NdotV, float LdotH, float roughness)
+            {
+                // luminance approx.
+                float albedoLuminosity = 0.3 * albedo.r + 0.6 * albedo.g + 0.1 * albedo.b;
+
+                // normalize lum. to isolate hue+sat
+                float3 albedoTint = 1;
+                if (albedoLuminosity > 0)
+                {
+                    albedoTint = albedo / albedoLuminosity;
+                }
+                float fresnelL = FresnelSchlick(NdotL);
+                float fresnelV = FresnelSchlick(NdotV);
+
+                float fresnelDiffuse = 0.5 + 2 * sqr(LdotH) * roughness;
+
+                float diffuse = albedoTint.r
+                    * lerp(1.0, fresnelDiffuse, fresnelL)
+                    * lerp(1.0, fresnelDiffuse, fresnelV);
+
+                float fresnelSubsurface90 = sqr(LdotH) * roughness;
+
+                float fresnelSubsurface = lerp(1.0, fresnelSubsurface90, fresnelL)
+                    * lerp(1.0, fresnelSubsurface90, fresnelV);
+
+                float ss = 1.25 * (fresnelSubsurface * (1 / (NdotL + NdotV) - 0.5) + 0.5);
+
+                return saturate(lerp(diffuse, ss, _Subsurface) * (1 / PI) * albedo);
+            }
+
+            float3 FresnelSchlickFrostbite(float3 F0, float F90, float u)
+            {
+                return F0 + (F90 - F0) * pow(1 - u, 5);
+            }
+
+            float3 DiffuseDisneyFrostbite(float3 albedo, float NdotL, float NdotV, float LdotH, float roughness)
+            {
+                float energyBias = lerp(0, 0.5, roughness);
+                float energyFactor = lerp(1.0, 1.0 / 1.51, roughness);
+                float Fd90 = energyBias + 2.0 * sqr(LdotH) * roughness;
+                float3 F0 = float3 (1, 1, 1);
+                float lightScatter = FresnelSchlickFrostbite(F0, Fd90, NdotL).r;
+                float viewScatter = FresnelSchlickFrostbite(F0, Fd90, NdotV).r;
+                return ((lightScatter * viewScatter * energyFactor) * albedo) /PI;
+            }
+
+            half DiffuseOrenNayar_Fakey(half3 N, half3 L, half3 V, half roughness)
+            {
+                // ref: https://kblog.popekim.com/2011/11/blog-post_16.html
+
+                // Through brute force iteration I found this approximation. Time to test it out.
+                half LdotN = dot(L, N);
+                half VdotN = dot(V, N);
+                half result = saturate(LdotN);
+                half soft_rim = saturate(1 - VdotN / 2); //soft view dependant rim
+                half fakey = pow(1 - result * soft_rim, 2);//modulate lambertian by rim lighting
+                half fakey_magic = 0.62;
+                //(1-fakey)*fakey_magic to invert and scale down the lighting
+                fakey = fakey_magic - fakey * fakey_magic;
+                return lerp(result, fakey, roughness);
+            }
+
             half4 frag(Varyings IN) : SV_Target
             {
                 float4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
@@ -171,7 +236,9 @@
                 half3 lightColor = light.color;
 
                 half3 albedo = (_ColorTint * tex).rgb;
-                half3 diffuse = NdotL * albedo * lightColor;
+                half3 diffuse = DiffuseDisney(albedo, NdotL, NdotV, LdotH, _Roughness) * lightColor;
+                //half3 diffuse = DiffuseDisneyFrostbite(albedo,  NdotL, NdotV, LdotH, _Roughness) * lightColor;
+                //half3 diffuse = DiffuseOrenNayar_Fakey(N, L, V, _Roughness) * lightColor * albedo;
 #if _ENABLECOOKTORRANCE_ON
                 half3 specular = SpecularCookTorrance(NdotL, LdotH, NdotH, NdotV, _Roughness, _SpecColor.r) * _SpecColor.rgb * lightColor;
 #else

@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ch12_CookTorrance
-  m_Shader: {fileID: 4800000, guid: 07841aebaabc3e841ba26c9448017107, type: 3}
-  m_ShaderKeywords: _ENABLECOOKTORRANCE_ON
+  m_Name: ch12_Disney
+  m_Shader: {fileID: 4800000, guid: 08c187ba4a982104bbdd6c3970b42322, type: 3}
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -63,7 +63,7 @@ Material:
     - _Cull: 2
     - _Cutoff: 0.5
     - _DstBlend: 0
-    - _EnableCookTorrance: 1
+    - _EnableCookTorrance: 0
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
@@ -73,13 +73,13 @@ Material:
     - _OcclusionStrength: 1
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _Roughness: 0.3
+    - _Roughness: 0.29
     - _Shininess: 22
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Subsurface: 1
+    - _Subsurface: 0
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
