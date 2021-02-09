@@ -486,7 +486,8 @@ struct BRDFData
 };
 ```
 
-- TODO custom Property drawer
+- [Custom Shader GUI](https://docs.unity3d.com/2021.1/Documentation/Manual/SL-CustomShaderGUI.html)
+- [ShaderGUI: Custom Material Inspectors in Unity 5+](https://www.alanzucconi.com/2016/11/07/shadergui-custom-material-inspectors-unity-5/)
 
 ## 14장. 고급 기술 구현
 
