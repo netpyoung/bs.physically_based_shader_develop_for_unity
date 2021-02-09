@@ -199,7 +199,9 @@ Light GetMainLight(float4 shadowCoord)
 
 ## 7장. 서피스 셰이더
 
-TODO surface셰이더는 무시하고 예제 fragment 셰이더 추가
+- Surface는 URP에서 안쓸꺼라서 Vert/Frag로 구현
+  - 2개 Albedo를 lerp시키는것.
+  - NormapMap적용.
 
 ## 8장. 물리 기반 셰이딩이란?
 
@@ -461,7 +463,30 @@ SIGGRAPH 2012 - Brent Burley - Physically Based Shading at Disney
 
 ## 13장. 표준 셰이더 후킹
 
-TODO
+- 16장. 복잡도와 우버셰이더 참조.
+
+``` hlsl
+// com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl
+
+struct BRDFData
+{
+    half3 albedo;
+    half3 diffuse;
+    half3 specular;
+    half reflectivity;
+    half perceptualRoughness;
+    half roughness;
+    half roughness2;
+    half grazingTerm;
+
+    // We save some light invariant BRDF terms so we don't have to recompute
+    // them in the light loop. Take a look at DirectBRDF function for detailed explaination.
+    half normalizationTerm;     // roughness * 4.0 + 2.0
+    half roughness2MinusOne;    // roughness^2 - 1.0
+};
+```
+
+- TODO custom Property drawer
 
 ## 14장. 고급 기술 구현
 
