@@ -400,6 +400,9 @@ SIGGRAPH 2012 - Brent Burley - Physically Based Shading at Disney
 
 ## 12장. BRDF 구현하기
 
+- 참고
+  - [[NDC19] 모바일에서 사용가능한 유니티 커스텀 섭스턴스 PBR 셰이더 만들기](https://www.slideshare.net/dongminpark71/ndc19-pbr-143928930)
+
 ### 레퍼런스 BRDF
 
 #### Cook Torrance 레퍼런스
@@ -429,18 +432,24 @@ SIGGRAPH 2012 - Brent Burley - Physically Based Shading at Disney
 #### Cook Torrance 이론
 
 미세면 이론
-|   |              |              |
-|---|--------------|--------------|
-| F | Fresnel      | 프레넬       |
-| D | Distribution | 정규분포함수 |
-| G | Geometry     | 기하함수     |
+|   |                                |              | 관여 벡터 |       |                                                                   |
+|---|--------------------------------|--------------|-----------|-------|-------------------------------------------------------------------|
+| D | Normal `Distribution` Function | 정규분포함수 | (H)       | 양수  | 크기, 밝기, 스펙큘러 모양                                         |
+| F | Fresnel                        | 프레넬       | (L, H)    | 0 ~ 1 | 보는 각도에 따른 반사율과 굴절율                                  |
+| G | Geometry                       | 기하함수     | (L, V, H) |       | 면이 서로 겹쳐서 빛을 차단하는 정도의 근사치를 통계적으로 구한다. |
 
-NDF : Normal Distribution Function : 정규분포함수
-
-- NDF
+- NDF (Normal `Distribution` Function)
   - Beckmann
   - Phong
   - GGX
+
+책의 구현에서는
+
+|   |                      |
+|---|----------------------|
+| D | Trowbridge-Reitz GGX |
+| F | Fresnel-Schlick      |
+| G | Smith's Schlick-GGX  |
 
 #### Disney 이론
 

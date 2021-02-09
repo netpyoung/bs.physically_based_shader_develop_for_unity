@@ -4,7 +4,7 @@
     {
         _ColorTint("Color", Color) = (1, 0, 0, 1)
         _MainTex("Texture", 2D) = "white" {}
-        _SpecColor("Specular Material Color", Color) = (1, 1, 1, 1)
+        _SpecColor("Specular Color", Color) = (1, 1, 1, 1)
         _BumpMap("Normal Map", 2D) = "bump" {}
 
         // 0 : NdotL
@@ -127,6 +127,9 @@
 
             float3 SpecularCookTorrance(float NdotL, float LdotH, float NdotH, float NdotV, float roughness, float F0)
             {
+                // F0 : reflectance ratio
+                // ref: https://academy.substance3d.com/courses/the-pbr-guide-part-1
+
                 float alpha = sqr(roughness);
 
                 // D
@@ -136,7 +139,7 @@
 
                 // F
                 float LdotH5 = FresnelSchlick(LdotH);
-                float F = F0 + (1.0 - F0) * LdotH5;
+                float F = F0 + (1.0 - F0) * LdotH;
 
                 // G
                 float r = _Roughness + 1;
@@ -146,6 +149,9 @@
                 float G = g1L * g1V;
 
                 float specular = NdotL * D * F * G;
+
+                // ref: https://computergraphics.stackexchange.com/questions/3946/correct-specular-term-of-the-cook-torrance-torrance-sparrow-model
+                //float specular = (D * F * G) / (4.0 * NdotV * NdotL + 0.000001);
                 return specular;
             }
 
@@ -153,7 +159,7 @@
             {
                 float4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
                 float3 tangentNormal = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, IN.uv));
-                tangentNormal.xy *= 6.5f; // BumpMap Strength.
+                // tangentNormal.xy *= 6.5f; // BumpMap Strength.
 
                 Light light = GetMainLight();
 

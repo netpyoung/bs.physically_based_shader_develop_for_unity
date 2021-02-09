@@ -1,10 +1,11 @@
-﻿Shader "shader/ch07"
+﻿Shader "shader/ch07_SecondAlbedo"
 {
     Properties
     {
         _Color("Color", Color) = (1, 0, 0, 1)
         _DiffuseTex("Texture", 2D) = "white" {}
-        _NormalMap("Normal Map", 2D) = "bump" {}
+        _SecondAlbedo("Second Albedo (RGB)", 2D) = "white" {}
+        _AlbedoLerp("Albedo Lerp", Range(0, 1)) = 0.5
         _Ambient("Ambient", Range(0, 1)) = 0.25
         _SpecColor("Specular Material Color", Color) = (1, 1, 1, 1)
         _Shininess("Shininess", Float) = 10
@@ -25,16 +26,17 @@
 
             TEXTURE2D(_DiffuseTex);
             SAMPLER(sampler_DiffuseTex);
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
+            TEXTURE2D(_SecondAlbedo);
+            SAMPLER(sampler_SecondAlbedo);
 
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
                 float4 _DiffuseTex_ST;
-                float4 _NormalMap_ST;
+                float4 _SecondAlbedo_ST;
                 half4 _SpecColor;
                 half _Shininess;
                 float _Ambient;
+                half _AlbedoLerp;
             CBUFFER_END
 
             struct Attributes
@@ -50,7 +52,6 @@
                 float2 uv           : TEXCOORD0;
                 float3 positionWS   : TEXCOORD1;
                 float3 normalWS     : TEXCOORD2;
-                float4 normalTexCoord : TEXCOORD4;
             };
 
             Varyings vert(Attributes IN)
@@ -91,9 +92,10 @@
                 float3 L = light.direction;
 
                 // float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, IN.uv));
-
                 // texture
-                float4 tex = SAMPLE_TEXTURE2D(_DiffuseTex, sampler_DiffuseTex, IN.uv);
+                float4 tex1 = SAMPLE_TEXTURE2D(_DiffuseTex, sampler_DiffuseTex, IN.uv);
+                float4 tex2 = SAMPLE_TEXTURE2D(_SecondAlbedo, sampler_SecondAlbedo, IN.uv);
+                float4 tex = lerp(tex1, tex2, _AlbedoLerp);
 
                 // diffuse
                 float NdotL = max(_Ambient, dot(N, L));
