@@ -4,7 +4,6 @@
     {
         _Color("Color", Color) = (1, 0, 0, 1)
         _DiffuseTex("Texture", 2D) = "white" {}
-        _Ambient("Ambient", Range(0, 1)) = 0.25
         _SpecColor("Specular Material Color", Color) = (1, 1, 1, 1)
         _Shininess("Shininess", Float) = 10
 
@@ -21,7 +20,7 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            // There is a maximum of 64 unique local keywords per shader.
+            // There is a maximum of 256 global keywords, plus 64 local keywords.
             // #pragma shader_feature __ _MODIFIEDMODE_ON
 
             #pragma shader_feature _MODIFIEDMODE_OFF _MODIFIEDMODE_ON
@@ -56,7 +55,6 @@
                 float4 _DiffuseTex_ST;
                 half4 _SpecColor;
                 half _Shininess;
-                float _Ambient;
             CBUFFER_END
 
             struct Attributes

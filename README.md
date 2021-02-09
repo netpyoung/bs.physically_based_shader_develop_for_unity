@@ -1,6 +1,13 @@
 # 유니티 물리 기반 쉐이더 개발
 
-TODO 책 링크
+![./physically-based-shader-dev-for-unity-2017.jpg](./physically-based-shader-dev-for-unity-2017.jpg)
+
+- [번역판](http://www.acornpub.co.kr/book/physically-unity-shader)
+- [source](https://github.com/Apress/physically-based-shader-dev-for-unity-2017)
+
+Legacy(Built-in)쉐이더로 작성되어있는데, 어차피 Legacy사용법도 잘 모르고 URP로 곧바로 연습해 보도록 하자.
+
+## URP (Universal Render Pipeline)
 
 - [Dev Weeks: URP 기본 구성과 흐름](https://www.youtube.com/watch?v=QRlz4-pAtpY)
 - [Dev Weeks: URP 셰이더 뜯어보기](https://www.youtube.com/watch?v=9K1uOihvNyg)
@@ -40,6 +47,7 @@ end
 ```
 
 ![./forward-v2.png](./forward-v2.png)
+
 라이트 갯수 증가> 연산량 증가
 
 ### Deferred
@@ -57,7 +65,7 @@ end
 ![./deferred-v2.png](./deferred-v2.png)
 
 - 반투명 불가
-- URP - 현재(10.3.1)지원 안함.
+- URP - 현재(10.3.1) deferred 지원 안함.
   - [URP 로드맵](https://portal.productboard.com/8ufdwj59ehtmsvxenjumxo82/tabs/3-universal-render-pipeline)
 - [블라인드 렌더러 -  새로운 기법 != 새 장난감](https://kblog.popekim.com/2012/02/blog-post.html)
 
@@ -191,19 +199,21 @@ Light GetMainLight(float4 shadowCoord)
 
 ## 7장. 서피스 셰이더
 
-Skip
+TODO surface셰이더는 무시하고 예제 fragment 셰이더 추가
 
 ## 8장. 물리 기반 셰이딩이란?
 
-빛을 측정하는 방법
-입체각 Solid Angle - 단위는 sr(steradian)
-단위 구로 어떠한 형상을 사영한 것.
+- 빛을 측정하는 방법
 
-파워 W(power) 여러 방향에서 표면을 통과해 전달되는 에너지 크기
-일레디안스 모든 광선에서 점에 전달되는 빛의 크기  Irradiance E (W/m^2)
-레디안스 하나의 광선에서 점에 전달되는 빛의 크기 Radiance L_0 (W/(m^2 * sr))
+|                       | 단위               | 설명                                             |
+|-----------------------|--------------------|--------------------------------------------------|
+| 입체각 Solid Angle    | sr(steradian)      | 단위 구로 어떠한 형상을 사영한 것.               |
+| 파워 Power            | W                  | 여러 방향에서 표면을 통과해 전달되는 에너지 크기 |
+| 일레디안스 Irradiance | E (W/m^2)          | 모든 광선에서 점에 전달되는 빛의 크기            |
+| 레디안스 Radiance     | L_0 (W/(m^2 * sr)) | 하나의 광선에서 점에 전달되는 빛의 크기          |
 
-재질을 표현하는 방법
+- 재질을 표현하는 방법
+
 양방향 반사 분포 함수 BRDF Bidirectional Reflectance Distribution Function
 빛이 표면에서 어떻게 반사될지에 대해 정의한 함수.
 
@@ -213,16 +223,7 @@ Skip
 | symmetry (reciprocity) | 빛이 들어오는 방향과 반사되는 방향의 값은 동일하다                                           |
 | conservation of energy | 나가는 빛의 양은 들어오는 빛의 양을 넘어설 수 없다(물체가 자체적으로 빛을 발산하지 않는다면) |
 
-미세면 이론
-|              |   |
-|--------------|---|
-| 프레넬       | F |
-| 정규분포함수 | D |
-| 기하함수     | G |
-
 ## 9장. 물리 기반 셰이더 제작하기
-
-phong
 
 ``` hlsl
 half3 LightingPhong(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specularColor, half3 albedo, half shininess)
@@ -367,37 +368,31 @@ float LinearEyeDepth(float3 positionWS, float4x4 viewMatrix)
 
 ### BRDF 종류
 
-- 어크먼 셜리
-- 쿡토렌스
-- 오렌네이어
-- 알드
-- 디즈니
-
-#### Ashikhmin Shirley
+#### Ashikhmin Shirley 어크먼 셜리
 
 2000 - Michael Ashikhmin & Peter Shirley - An Anisotropic Phong BRDF Model
 
 퐁 스펙큘러
 
-#### Cook Torrance
+#### Cook Torrance 쿡토렌스
 
 1982 - Robert L.Cook & Kenneth E. Torrance - A Reflectance Model For Computer Graphics
 
 미세면이론
 
-#### Oren Nayar
+#### Oren Nayar 오렌네이어
 
 1994 - Michael Oren & Shree K. Nayar - Generalization of Lambert’s Reflectance Model
 
 디퓨즈 전용
 
-#### Ward
+#### Ward 알드
 
 1992 - Gregory J. Ward - Measuring and modeling anisotropic reflection
 
 경험적 데이터 기반, 거의 사용되지 않음.
 
-#### Disney
+#### Disney 디즈니
 
 SIGGRAPH 2012 - Brent Burley - Physically Based Shading at Disney
 
@@ -408,10 +403,6 @@ SIGGRAPH 2012 - Brent Burley - Physically Based Shading at Disney
 ### 레퍼런스 BRDF
 
 #### Cook Torrance 레퍼런스
-
-미세면이론
-
-1982 - Robert L.Cook & Kenneth E. Torrance - A Reflectance Model For Computer Graphics
 
 |                                                                                      |                                                                    |
 |--------------------------------------------------------------------------------------|--------------------------------------------------------------------|
@@ -425,8 +416,6 @@ SIGGRAPH 2012 - Brent Burley - Physically Based Shading at Disney
 | Microfacet Models for Refraction through Rough Surfaces                              | EGSR, 2017                                                         |
 
 #### Disney 레퍼런스
-
-직관적 파라미터 좋은 예제, 구현 복잡
 
 |                                                                           |                                                                                    |
 |---------------------------------------------------------------------------|------------------------------------------------------------------------------------|
@@ -463,7 +452,11 @@ NDF : Normal Distribution Function : 정규분포함수
 
 ## 13장. 표준 셰이더 후킹
 
+TODO
+
 ## 14장. 고급 기술 구현
+
+TODO
 
 ## 15장. 아티스트가 사용할 셰이더 제작
 
@@ -505,6 +498,19 @@ NDF : Normal Distribution Function : 정규분포함수
 조합해서 나올 수 있는 총 갯수: 6개
 A+D, B+D, C+D
 A+E, B+E, C+E
+```
+
+``` hlsl
+[KeywordEnum(Off, On)] _UseNormal("Use Normal Map", Float) = 0 
+#pragma shader_feature _USENORMAL_OFF _USENORMAL_ON
+#if _USENORMAL_ON
+#endif
+
+
+[Toggle] _ModifiedMode("Modified?", Float) = 0
+#pragma shader_feature _MODIFIEDMODE_OFF _MODIFIEDMODE_ON
+#if _MODIFIEDMODE_ON
+#endif
 ```
 
 ## 17장. 셰이더가 정상작동하지 않을 때
