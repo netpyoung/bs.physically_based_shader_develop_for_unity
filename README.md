@@ -179,6 +179,7 @@ struct Light
 };
 
 Light GetMainLight()
+    light.direction = _MainLightPosition.xyz;
 
 Light GetMainLight(float4 shadowCoord)
 
@@ -491,7 +492,31 @@ struct BRDFData
 
 ## 14장. 고급 기술 구현
 
-TODO
+- 반투명 (Translucency)
+  - TODO 예제에서 2개의 Directional Light사용...
+
+``` hlsl
+// ref: GPG Pro 2
+
+// 노말과 라이트의 하프에 뷰를 닷연산으로 묶어준다.
+//Translucency
+float thickness = SAMPLE_TEXTURE2D(_Thickness, sampler_Thickness, IN.uv).r;
+float3 translucencyLightDir = L + N * _Distortion;
+float translucencyDot = pow(saturate(dot(V, -translucencyLightDir)), _Power) * _Scale;
+float3 translucency = translucencyDot * thickness * _SubsurfaceColor.rgb;
+diffuse += translucency;
+```
+
+### IBL
+
+- <https://github.com/netpyoung/vs.shader-developing-using-unity#50-image-based-lighting>
+
+| Cubemap생성 도구                                         |             |
+|----------------------------------------------------------|-------------|
+| [cmftStudio](https://github.com/dariomanesku/cmftStudio) | BSD 2       |
+| [Knald's Lys](https://www.knaldtech.com/lys/)            | Commercial  |
+| [IBLBaker](https://github.com/derkreature/IBLBaker)      | MIT License |
+| [CubeMapGen](https://gpuopen.com/archived/cubemapgen/)   | old         |
 
 ## 15장. 아티스트가 사용할 셰이더 제작
 

@@ -1,4 +1,4 @@
-﻿Shader "shader/ch13_CookTorrance_CustomInspector"
+﻿Shader "shader/ch14"
 {
     Properties
     {
@@ -12,6 +12,13 @@
         [Toggle] _EnableCookTorrance("CookTorrance?", Float) = 0
 
         _Roughness("Roughness(CookTorrance)", Range(0, 1)) = 0.5
+
+        //Translucency
+        _Thickness("Thickness (R)", 2D) = "white" {}
+        _Power("Power Factor", Range(0.1, 10.0)) = 1.0
+        _Distortion("Distortion", Range(0.0, 10.0)) = 0.0
+        _Scale("Scale Factor", Range(0.0, 10.0)) = 0.5
+        _SubsurfaceColor("Subsurface Color", Color) = (1, 1, 1, 1)
     }
 
     SubShader
@@ -51,6 +58,8 @@
             SAMPLER(sampler_MainTex);
             TEXTURE2D(_BumpMap);
             SAMPLER(sampler_BumpMap);
+            TEXTURE2D(_Thickness);
+            SAMPLER(sampler_Thickness);
 
             CBUFFER_START(UnityPerMaterial)
                 half4 _ColorTint;
@@ -58,6 +67,11 @@
                 half4 _SpecColor;
                 float4 _BumpMap_ST;
                 half _Roughness;
+                float4 _Thickness_ST;
+                float _Power;
+                float _Distortion;
+                float _Scale;
+                float4 _SubsurfaceColor;
             CBUFFER_END
 
             struct Attributes
@@ -81,15 +95,14 @@
             };
 
             // ----------
-            void ExtractTBN(half3 normalOS, float4 tangent, inout half3 T, inout half3  B, inout half3 N)
+            inline void ExtractTBN(in half3 normalOS, in float4 tangent, inout half3 T, inout half3  B, inout half3 N)
             {
-                half fTangentSign = tangent.w * unity_WorldTransformParams.w;
                 N = TransformObjectToWorldNormal(normalOS);
                 T = TransformObjectToWorldDir(tangent.xyz);
-                B = cross(N, T) * fTangentSign;
+                B = cross(N, T) * tangent.w * unity_WorldTransformParams.w;
             }
 
-            inline half3 CombineTBN(half3 tangentNormal, half3 T, half3  B, half3 N)
+            inline half3 CombineTBN(in half3 tangentNormal, in half3 T, in half3  B, in half3 N)
             {
                 return mul(tangentNormal, float3x3(normalize(T), normalize(B), normalize(N)));
             }
@@ -157,13 +170,14 @@
             {
                 float4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
                 float3 tangentNormal = UnpackNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, IN.uv));
-                // tangentNormal.xy *= 6.5f; // BumpMap Strength.
+                tangentNormal.xy *= 6.5f; // BumpMap Strength.
 
                 Light light = GetMainLight();
 
+                //float3 N = normalize(IN.T); //CombineTBN(tangentNormal, IN.T, IN.B, IN.N);
                 float3 N = CombineTBN(tangentNormal, IN.T, IN.B, IN.N);
                 float3 V = normalize(GetWorldSpaceViewDir(IN.positionWS));
-                float3 L = light.direction;
+                float3 L = normalize(light.direction);
                 float3 H = normalize(L + V);
 
                 float NdotL = saturate(dot(N, L));
@@ -175,19 +189,25 @@
                 half3 lightColor = light.color;
 
                 half3 albedo = (_ColorTint * tex).rgb;
-                half3 diffuse = NdotL * albedo * lightColor;
+                half3 diffuse = NdotL * albedo;
 #if _ENABLECOOKTORRANCE_ON
-                half3 specular = SpecularCookTorrance(NdotL, LdotH, NdotH, NdotV, _Roughness, _SpecColor.r) * _SpecColor.rgb * lightColor;
+                half3 specular = SpecularCookTorrance(NdotL, LdotH, NdotH, NdotV, _Roughness, _SpecColor.r);
 #else
                 half3 R = reflect(-L, N);
                 half3 VdotR = max(0.0, dot(V, R));
-                half3 specPower = pow(VdotR, 22);
-                half3 specular = _SpecColor.rgb * specPower * lightColor;
+                half3 specular = pow(VdotR, 22);
 #endif
-                return half4(diffuse + specular, 1);
+
+                //Translucency
+                float thickness = SAMPLE_TEXTURE2D(_Thickness, sampler_Thickness, IN.uv).r;
+                float3 translucencyLightDir = L + N * _Distortion;
+                float translucencyDot = pow(saturate(dot(V, -translucencyLightDir)), _Power) * _Scale;
+                float3 translucency = translucencyDot * thickness * _SubsurfaceColor.rgb;
+                diffuse += translucency;
+
+                return half4((diffuse + specular * _SpecColor.rgb) * lightColor, 1);
             }
             ENDHLSL
         }
     }
-    CustomEditor "Ch13CustomInspector"
 }
