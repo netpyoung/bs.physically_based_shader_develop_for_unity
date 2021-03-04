@@ -492,14 +492,24 @@ struct BRDFData
 
 ## 14장. 고급 기술 구현
 
-- 반투명 (Translucency)
-  - TODO 예제에서 2개의 Directional Light사용...
+### 반투명 (Translucency)
+
+반투명은 BRDF로 처리하기 곤란.
+|      |                                                   |                                                |
+|------|---------------------------------------------------|------------------------------------------------|
+| BRDF | Bidirectional reflectance distribution function   | 는 빛이 어떤 방향으로 반사가 되는지            |
+| BTDF | Bidirectional transmittance distribution function | 는 빛이 어떤 방향으로 투과가 되는지            |
+| BSDF | Bidirectional scattering distribution function    | 이 둘을 합쳐 빛이 재질과 어떻게 상호작용하는지 |
+
+- TODO 예제에서 2개의 Directional Light사용...
 
 ``` hlsl
 // ref: GPG Pro 2
 
-// 노말과 라이트의 하프에 뷰를 닷연산으로 묶어준다.
 //Translucency
+// - 노말과 라이트의 하프의 역방향에 (물체 뒷부분)
+// - 뷰를 닷연산으로 묶어준다. (확산효과)
+
 float thickness = SAMPLE_TEXTURE2D(_Thickness, sampler_Thickness, IN.uv).r;
 float3 translucencyLightDir = L + N * _Distortion;
 float translucencyDot = pow(saturate(dot(V, -translucencyLightDir)), _Power) * _Scale;
@@ -543,7 +553,7 @@ diffuse += translucency;
 - 총 256개의 글로벌 키워드.
 - 64개의 로컬 키워드.
 
-- `#pragma shader_feature KEYWORD
+- `#pragma shader_feature KEYWORD`
 - `#pragma multi_compile KEYWORD`
 
 |                | 게임빌드에 포함     |
@@ -704,4 +714,4 @@ half4 frag(Varyings IN) : SV_Target
 ## etc
 
 - [Microfacet BRDF](http://www.pbr-book.org/3ed-2018/Reflection_Models/Microfacet_Models.html#)
-- http://www.pbr-book.org/
+- <http://www.pbr-book.org/>
